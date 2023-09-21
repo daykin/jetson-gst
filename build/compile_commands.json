@@ -1,0 +1,22 @@
+[
+{
+  "directory": "/home/daykin/git/jetson-vid-input/build/src",
+  "command": "/usr/bin/aarch64-linux-gnu-g++  -DjetsonGst_EXPORTS -I/usr/lib/glib-2.0/include -I/usr/include/glib-2.0 -I/usr/lib/aarch64-linux-gnu/glib-2.0/include -I/usr/include/gstreamer-1.0  -g -fPIC -fvisibility=default   -std=gnu++1z -o CMakeFiles/jetsonGst.dir/GStreamerVideoSource.cpp.o -c /home/daykin/git/jetson-vid-input/src/GStreamerVideoSource.cpp",
+  "file": "/home/daykin/git/jetson-vid-input/src/GStreamerVideoSource.cpp"
+},
+{
+  "directory": "/home/daykin/git/jetson-vid-input/build/src",
+  "command": "/usr/bin/aarch64-linux-gnu-g++  -DjetsonGst_EXPORTS -I/usr/lib/glib-2.0/include -I/usr/include/glib-2.0 -I/usr/lib/aarch64-linux-gnu/glib-2.0/include -I/usr/include/gstreamer-1.0  -g -fPIC -fvisibility=default   -std=gnu++1z -o CMakeFiles/jetsonGst.dir/GStreamerVideoSourceFile.cpp.o -c /home/daykin/git/jetson-vid-input/src/GStreamerVideoSourceFile.cpp",
+  "file": "/home/daykin/git/jetson-vid-input/src/GStreamerVideoSourceFile.cpp"
+},
+{
+  "directory": "/home/daykin/git/jetson-vid-input/build/src",
+  "command": "/usr/bin/aarch64-linux-gnu-g++  -DjetsonGst_EXPORTS -I/usr/lib/glib-2.0/include -I/usr/include/glib-2.0 -I/usr/lib/aarch64-linux-gnu/glib-2.0/include -I/usr/include/gstreamer-1.0  -g -fPIC -fvisibility=default   -std=gnu++1z -o CMakeFiles/jetsonGst.dir/GStreamerVideoSourceLive.cpp.o -c /home/daykin/git/jetson-vid-input/src/GStreamerVideoSourceLive.cpp",
+  "file": "/home/daykin/git/jetson-vid-input/src/GStreamerVideoSourceLive.cpp"
+},
+{
+  "directory": "/home/daykin/git/jetson-vid-input/build/src",
+  "command": "/usr/bin/aarch64-linux-gnu-g++   -I/usr/lib/glib-2.0/include -I/usr/include/glib-2.0 -I/usr/lib/aarch64-linux-gnu/glib-2.0/include -I/home/daykin/git/jetson-vid-input/src -I/usr/include/gstreamer-1.0  -g -fPIE -fvisibility=default   -std=gnu++1z -o CMakeFiles/demo.dir/demo.cpp.o -c /home/daykin/git/jetson-vid-input/src/demo.cpp",
+  "file": "/home/daykin/git/jetson-vid-input/src/demo.cpp"
+}
+]

@@ -1,0 +1,6 @@
+/home/daykin/git/jetson-vid-input/build/CMakeFiles/rebuild_cache.dir
+/home/daykin/git/jetson-vid-input/build/CMakeFiles/edit_cache.dir
+/home/daykin/git/jetson-vid-input/build/src/CMakeFiles/edit_cache.dir
+/home/daykin/git/jetson-vid-input/build/src/CMakeFiles/rebuild_cache.dir
+/home/daykin/git/jetson-vid-input/build/src/CMakeFiles/jetsonGst.dir
+/home/daykin/git/jetson-vid-input/build/src/CMakeFiles/demo.dir
