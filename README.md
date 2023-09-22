@@ -8,7 +8,9 @@ At the moment, it does this by wrapping a pointer to a generic GstMapInfo.data a
 ### Requirements
 
 TISCamera SDK - https://github.com/TheImagingSource/tiscamera.git (follow the install instructions)
+
 NVidia VPI v1.1 - sudo apt install vpi1-dev
+
 OpenCV 4 - sudo apt install libopencv-dev
 
 ### Building
