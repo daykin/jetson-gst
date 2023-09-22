@@ -58,3 +58,20 @@ void GStreamerVideoSource::start(){
 void GStreamerVideoSource::stop(){
     gst_element_set_state(this->pipeline, GST_STATE_NULL);
 }
+
+void GStreamerVideoSource::setBuf(GstBuffer* buf){
+    this->buf = buf;
+    gst_buffer_map(this->buf, this->info, GST_MAP_READ);
+}
+
+void *GStreamerVideoSource::getData()
+{
+    if(this->info->data != NULL){
+        return this->info->data;
+    }
+}
+
+void GStreamerVideoSource::bufferUnref(){
+    gst_buffer_unmap(this->buf, this->info);
+    gst_buffer_unref(this->buf);
+}

@@ -15,10 +15,10 @@
  * See the License for the specific language governing permissions and limitations under the License.
  */
 
-#include "GStreamerVideoSource.h"
+#include "GStreamerVPI.h"
 #include <iostream>
 
-static GstFlowReturn dumbCallback(GstElement* sink, void* userData){
+/* static GstFlowReturn dumbCallback(GstElement* sink, void* userData){
     GstSample* sample;
     g_signal_emit_by_name(sink, "pull-sample", &sample, NULL);
     if(sample){
@@ -42,7 +42,7 @@ static GstFlowReturn dumbCallback(GstElement* sink, void* userData){
         gst_sample_unref(sample);
     }
     return GST_FLOW_OK;
-}
+} */
 
 int main(int argc, char** argv){
     gst_init(&argc, &argv);
@@ -58,13 +58,11 @@ int main(int argc, char** argv){
         }
         
     }
-    //creates a 'source' object reading from camera with serial number 36510395.
-    //we provide a pointer to dumbCallback above, which is called when a frame is ready
-    GStreamerVideoSource* source = GStreamerVideoSource::create(id.c_str(), &dumbCallback, NULL);
-    source->start();
+    //creates a 'source' object reading from camera.
+    GStreamerVPI source = GStreamerVPI(id.c_str());
+    source.start();
     std::cout<<"Press enter to stop the stream."<<std::endl;
     std::cin.get();
-    source->stop();
-    delete source;
+    source.stop();
     return 0;
 }

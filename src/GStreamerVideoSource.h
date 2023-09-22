@@ -41,6 +41,9 @@ class GStreamerVideoSource
         ~GStreamerVideoSource() {gst_object_unref(GST_OBJECT(this->pipeline));}
         void start();
         void stop();
+        void setBuf(GstBuffer* buf);
+        void* getData();
+        void bufferUnref();
         //Abstract factory to create either a GStreamerVideoSourceFile or a GStreamerVideoSourceLive.
         static GStreamerVideoSource* create(const char* id, CALLBACK cb, void* userData);
 
@@ -53,6 +56,8 @@ class GStreamerVideoSource
         GstElement *pipeline;
         GstElement *source;
         GstElement *sink;
+        GstBuffer  *buf;
+        GstMapInfo *info;
 };
 
 class GStreamerVideoSourceFile : public GStreamerVideoSource

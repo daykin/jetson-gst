@@ -36,26 +36,34 @@
 
 #include "GStreamerVideoSource.h"
 
-struct Dimension{
-    int xSize;
-    int ySize;
-};
 
 class GStreamerVPI{
     public:
         GStreamerVPI(const char* id);
         ~GStreamerVPI();
-        static VPIImageFormat getVPIFormat(GstCaps* caps);
-        static Dimension getDimensionsFromCaps(GstCaps* caps);
+        gboolean structureHasChanged();
+        void* getInData();
+        void start(){this->source->start();};
+        void stop(){this->source->stop();}
     protected:
+        void getVPIFormatIn(GstCaps* caps);
+        void getDimensionsFromCaps(GstCaps* caps);
+        void updateImageData();
+        void unrefSourceBuffer();
         GStreamerVideoSource* source;
         VPIContext ctx;
         VPIStream stream;
-        VPIBackend backend;
+        VPIImage imgIn;
+        VPIImageData imgDataIn;
         VPIImageFormat fmtIn;
+        VPIImagePlane planeIn;
+        VPIImage imgOut;
+        VPIBackend backend;
         VPIImageFormat fmtOut;
         VPIPayload payload;
     private:
+        gboolean sameDimensions;
+        gboolean sameFormat;
         static GstFlowReturn vpi_callback(GstElement* sink, void* _vpi);
 };
 
