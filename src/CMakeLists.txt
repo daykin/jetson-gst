@@ -21,11 +21,17 @@ set( srcs
     GStreamerVideoSource.h
     GStreamerVPI.h
     GStreamerVPI.cpp
+    Logger.h
 )
 
 #create a shared library target
 add_library( ${PROJECT_NAME} SHARED ${srcs} )
 add_executable(demo demo.cpp)
+#put demo in bin/
+set_target_properties(demo PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+#put the shared library in lib/aarch64-linux-gnu/
+set_target_properties(${PROJECT_NAME} PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib/aarch64-linux-gnu)
+
 target_include_directories(demo PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(${PROJECT_NAME} ${GSTREAMER_LIBRARIES} ${GLIB_LIBRARIES} ${TCAM_LIBRARIES} ${OPENCV_LIBRARIES} ${NVVPI_LIBRARIES})
 target_link_libraries(demo ${PROJECT_NAME} ${GSTREAMER_LIBRARIES} ${GLIB_LIBRARIES} ${TCAM_LIBRARIES} ${OPENCV_LIBRARIES} ${NVVPI_LIBRARIES})

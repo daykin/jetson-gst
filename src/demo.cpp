@@ -18,48 +18,43 @@
 #include "GStreamerVPI.h"
 #include <iostream>
 
-/* static GstFlowReturn dumbCallback(GstElement* sink, void* userData){
-    GstSample* sample;
-    g_signal_emit_by_name(sink, "pull-sample", &sample, NULL);
-    if(sample){
-        std::cout<<"Got a frame!"<<std::endl;
-        GstBuffer* buffer = gst_sample_get_buffer(sample);
-        GstMapInfo info;
-        GstPad *pad;
-        GstCaps* caps;
-        gst_buffer_map(buffer, &info, GST_MAP_READ);
-        pad = gst_element_get_static_pad(sink, "sink");
-        caps = gst_pad_get_current_caps(pad);
-        if(caps != nullptr){
-            gchar *str = gst_caps_to_string(caps);
-            std::cout<<"Caps: "<<str<<std::endl;
-            g_free(str);
-        }
-        gst_caps_unref(caps);
-        //do something with the data in info.data
-
-        gst_buffer_unmap(buffer, &info);
-        gst_sample_unref(sample);
-    }
-    return GST_FLOW_OK;
-} */
+void printHelp(){
+    std::cout<<"Usage: demo [-h] [-v|-vv] [serial number of camera, or /path/to/videofile.mp4] "<<std::endl;
+    std::cout<<"-v: verbose"<<std::endl;
+    std::cout<<"-vv: very verbose"<<std::endl;
+}
 
 int main(int argc, char** argv){
     gst_init(&argc, &argv);
     //default serial number
     std::string id = "";
-    if(argc>1){
-        if (std::string(argv[1]) == "-h"){
-            std::cout<<"Usage: demo [serial number of camera, or /path/to/videofile.mp4]"<<std::endl;
+    LogLevel ll = WARN;
+    for(int i=1; i<argc; i++){
+        if (std::string(argv[i]) == "-h"){
+            printHelp();
+            return 0;
+        }
+        if(std::string(argv[i]) == "-v"){
+           ll = INFO;
+        }
+        else if(std::string(argv[i]) == "-vv"){
+            ll = DEBUG;
+        }
+        else if(i==argc-1 && argv[i][0] != '-'){
+            id = argv[i];
+        }
+        else if(argv[i][0] == '-'){
+            std::cout<<"Unknown option: "<<argv[i]<<std::endl;
+            printHelp();
             return 0;
         }
         else{
-            id = std::string(argv[1]);
+            printHelp();
+            return 0;
         }
-        
     }
-    //creates a 'source' object reading from camera.
-    GStreamerVPI source = GStreamerVPI(id.c_str());
+
+    GStreamerVPI source = GStreamerVPI(id.c_str(), ll);
     source.start();
     std::cout<<"Press enter to stop the stream."<<std::endl;
     std::cin.get();

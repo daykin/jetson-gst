@@ -34,13 +34,14 @@
 #include <vpi/Event.h>
 #include <vpi/algo/ConvertImageFormat.h>
 
+#include "Logger.h"
 #include "GStreamerVideoSource.h"
 
 #define INVALIDATE_IMGIN {if(vpi->imgIn != NULL){ vpiImageInvalidate(vpi->imgIn); }}
 
 class GStreamerVPI{
     public:
-        GStreamerVPI(const char* id);
+        GStreamerVPI(const char* id, LogLevel level = WARN);
         ~GStreamerVPI();
         gboolean structureHasChanged();
         void* getInData();
@@ -49,10 +50,10 @@ class GStreamerVPI{
         void start(){this->source->start();};
         void stop(){this->source->stop();}
     protected:
-        void getVPIFormatIn(GstCaps* caps);
         void updateImageData();
         void unrefSourceBuffer();
         GStreamerVideoSource* source;
+        Logger logger = Logger("GStreamerVPI", WARN);
         VPIContext ctx;
         VPIStream stream;
         VPIImage imgIn;

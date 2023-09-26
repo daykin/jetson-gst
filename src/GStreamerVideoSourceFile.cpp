@@ -19,7 +19,7 @@
 #include <string>
 #include <iostream>
 
-GStreamerVideoSourceFile::GStreamerVideoSourceFile(const char* fileName, CALLBACK cb, void* userData){
+GStreamerVideoSourceFile::GStreamerVideoSourceFile(const char* fileName, CALLBACK cb, void* userData): GStreamerVideoSource(WARN){
     std::string pipeline_str;
     this->userData = userData;
     this->cb = cb;

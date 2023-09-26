@@ -16,14 +16,23 @@
  */
 
 #include "GStreamerVideoSource.h"
+#include "Logger.h"
 #include <string>
 #include <cstring>
 #include <iostream>
 
+GStreamerVideoSource::GStreamerVideoSource(LogLevel logLevel = WARN){
+    pipeline = NULL;
+    source = NULL;
+    sink = NULL;
+    buf = NULL;
+    info = new GstMapInfo();
+    logger.setLogLevel(logLevel);
+}
+
 GStreamerVideoSource* GStreamerVideoSource::create(const char* id, GStreamerVideoSource::CALLBACK cb, void* userData){
     std::string strId(id);
     if (strId.size() >= 4 && strId.substr(strId.size() - 4) == ".mp4"){
-        std::cout<<"file"<<std::endl;
         return new GStreamerVideoSourceFile(id, cb, userData);
     //else create a GStreamerVideoSourceLive
     }else{
@@ -35,20 +44,25 @@ GStreamerVideoSource* GStreamerVideoSource::create(const char* id, GStreamerVide
 int GStreamerVideoSource::createPipeline(const char* pipeline_str, void* myData){
     GError* err = NULL;
     //create pipeline from pipeline_str
+    INFO("Creating pipeline");
+    DEBUG(pipeline_str);
     pipeline = gst_parse_launch(pipeline_str, &err);
     if (pipeline == NULL)
     {
-        printf("Could not create pipeline. Cause: %s\n", err->message);
+        ERROR("Could not create pipeline. Cause:\n");
+        ERROR(err->message);
         return 1;
     }
     //get source and sink elements from pipeline
+    DEBUG("Getting source and sink elements");
     source = gst_bin_get_by_name(GST_BIN(pipeline), "source");
     sink = gst_bin_get_by_name(GST_BIN(pipeline), "sink");
     pad = gst_element_get_static_pad(sink, "sink");
-    //set callback function for sink
+    DEBUG("Attaching callback to GStreamer sink");
     g_object_set(G_OBJECT(sink), "emit-signals", TRUE, NULL);
     g_signal_connect(sink, "new-sample", G_CALLBACK(cb), myData);
     gst_object_unref(sink);
+    INFO("Done creating pipeline.");
     return 0;
 }
 

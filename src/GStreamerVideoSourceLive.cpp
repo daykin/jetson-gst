@@ -18,7 +18,7 @@
 #include "GStreamerVideoSource.h"
 #include <iostream> 
 
-GStreamerVideoSourceLive::GStreamerVideoSourceLive(const char* serial, CALLBACK cb, void* userData){
+GStreamerVideoSourceLive::GStreamerVideoSourceLive(const char* serial, CALLBACK cb, void* userData): GStreamerVideoSource(WARN){
     const char* pipeline_str = "tcambin name=source ! videoconvert ! appsink name=sink";
     this->userData = userData;
     this->cb = cb;

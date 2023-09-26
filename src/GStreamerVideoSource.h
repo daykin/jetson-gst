@@ -32,11 +32,13 @@ extern "C"{
 #include <gst/app/gstappsrc.h>
 #include <gst/video/video.h>
 }
+#include "Logger.h"
 
 class GStreamerVideoSource
 {
     public:
         typedef GstFlowReturn (*CALLBACK)(GstElement*, void*);
+        GStreamerVideoSource(LogLevel);
         // everything attached to pipeline is torn down automagically
         ~GStreamerVideoSource() {
             gst_buffer_unmap(buf, info);
@@ -45,37 +47,35 @@ class GStreamerVideoSource
             gst_object_unref(GST_OBJECT(pipeline));
         }
         void start();
+        void setLogLevel(LogLevel level){
+            logger.setLogLevel(level);
+        };
         void stop();
         void setBuf(GstBuffer* buf);
         void* getData();
         GstPad* getPad(){return pad;}
         void bufferUnref();
-        //Abstract factory to create either a GStreamerVideoSourceFile or a GStreamerVideoSourceLive.
+        //Factory to create either a GStreamerVideoSourceFile or a GStreamerVideoSourceLive.
         static GStreamerVideoSource* create(const char* id, CALLBACK cb, void* userData);
 
     protected:
-        GStreamerVideoSource(CALLBACK, void*){}
-        GStreamerVideoSource(){pipeline = NULL;
-                               source = NULL;
-                               sink = NULL;
-                               buf = NULL;
-                               info = new GstMapInfo();}
         int createPipeline(const char* pipeline_str, void* myData);
         void* userData;
         CALLBACK cb;
         GstElement *pipeline;
         GstElement *source;
-        GstPad *pad;
+        GstPad     *pad;
         GstElement *sink;
         GstBuffer  *buf;
         GstMapInfo *info;
+    private:
+        Logger logger = Logger("GStreamerVideoSource", WARN);
 };
 
 class GStreamerVideoSourceFile : public GStreamerVideoSource
 {
     public:
         GStreamerVideoSourceFile(const char* path, CALLBACK, void* userData);
-        GStreamerVideoSourceFile(){}
         GStreamerVideoSourceFile(const GStreamerVideoSourceFile&);
         ~GStreamerVideoSourceFile();
 
@@ -87,8 +87,7 @@ class GStreamerVideoSourceLive : public GStreamerVideoSource
 {
     public:
         //pass camName==NULL to use the default camera
-        GStreamerVideoSourceLive(const char*, CALLBACK, void*);
-        GStreamerVideoSourceLive();
+        GStreamerVideoSourceLive(const char*, CALLBACK, void* userData);
         GStreamerVideoSourceLive(const GStreamerVideoSourceLive&);
         ~GStreamerVideoSourceLive();
 
