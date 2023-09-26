@@ -35,43 +35,44 @@ GStreamerVideoSource* GStreamerVideoSource::create(const char* id, GStreamerVide
 int GStreamerVideoSource::createPipeline(const char* pipeline_str, void* myData){
     GError* err = NULL;
     //create pipeline from pipeline_str
-    this->pipeline = gst_parse_launch(pipeline_str, &err);
-    if (this->pipeline == NULL)
+    pipeline = gst_parse_launch(pipeline_str, &err);
+    if (pipeline == NULL)
     {
         printf("Could not create pipeline. Cause: %s\n", err->message);
         return 1;
     }
     //get source and sink elements from pipeline
-    this->source = gst_bin_get_by_name(GST_BIN(pipeline), "source");
-    this->sink = gst_bin_get_by_name(GST_BIN(pipeline), "sink");
+    source = gst_bin_get_by_name(GST_BIN(pipeline), "source");
+    sink = gst_bin_get_by_name(GST_BIN(pipeline), "sink");
+    pad = gst_element_get_static_pad(sink, "sink");
     //set callback function for sink
-    g_object_set(G_OBJECT(this->sink), "emit-signals", TRUE, NULL);
-    g_signal_connect(this->sink, "new-sample", G_CALLBACK(this->cb), myData);
-    gst_object_unref(this->sink);
+    g_object_set(G_OBJECT(sink), "emit-signals", TRUE, NULL);
+    g_signal_connect(sink, "new-sample", G_CALLBACK(cb), myData);
+    gst_object_unref(sink);
     return 0;
 }
 
 void GStreamerVideoSource::start(){
-    gst_element_set_state(this->pipeline, GST_STATE_PLAYING);
+    gst_element_set_state(pipeline, GST_STATE_PLAYING);
 }
 
 void GStreamerVideoSource::stop(){
-    gst_element_set_state(this->pipeline, GST_STATE_NULL);
+    gst_element_set_state(pipeline, GST_STATE_NULL);
 }
 
 void GStreamerVideoSource::setBuf(GstBuffer* buf){
-    this->buf = buf;
-    gst_buffer_map(this->buf, this->info, GST_MAP_READ);
+    buf = buf;
+    gst_buffer_map(buf, info, GST_MAP_READ);
 }
 
 void *GStreamerVideoSource::getData()
 {
-    if(this->info->data != NULL){
-        return this->info->data;
+    if(info->data != NULL){
+        return info->data;
     }
 }
 
 void GStreamerVideoSource::bufferUnref(){
-    gst_buffer_unmap(this->buf, this->info);
-    gst_buffer_unref(this->buf);
+    gst_buffer_unmap(buf, info);
+    gst_buffer_unref(buf);
 }

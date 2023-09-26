@@ -20,15 +20,25 @@
 
 GStreamerVideoSourceLive::GStreamerVideoSourceLive(const char* serial, CALLBACK cb, void* userData){
     const char* pipeline_str = "tcambin name=source ! videoconvert ! appsink name=sink";
-    this->userData = userData;
-    this->cb = cb;
+    userData = userData;
+    cb = cb;
     GError* err = NULL;
-    this->createPipeline(pipeline_str, userData); 
+    createPipeline(pipeline_str, userData); 
     if(serial != ""){
-        GstElement* source = gst_bin_get_by_name(GST_BIN(this->pipeline), "source");
+        GstElement* source = gst_bin_get_by_name(GST_BIN(pipeline), "source");
         GValue val = {};
         g_value_init(&val, G_TYPE_STRING);
         g_value_set_static_string(&val, serial);
         g_object_set_property(G_OBJECT(source), "serial", &val);
     }
+}
+
+//trivial copy constructor
+GStreamerVideoSourceLive::GStreamerVideoSourceLive(const GStreamerVideoSourceLive& other){
+    pipeline = other.pipeline;
+    source = other.source;
+    sink = other.sink;
+    pad = other.pad;
+    buf = other.buf;
+    info = other.info;
 }

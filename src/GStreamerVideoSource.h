@@ -38,23 +38,34 @@ class GStreamerVideoSource
     public:
         typedef GstFlowReturn (*CALLBACK)(GstElement*, void*);
         // everything attached to pipeline is torn down automagically
-        ~GStreamerVideoSource() {gst_object_unref(GST_OBJECT(this->pipeline));}
+        ~GStreamerVideoSource() {
+            gst_buffer_unmap(buf, info);
+            delete info;
+            gst_object_unref(pad);
+            gst_object_unref(GST_OBJECT(pipeline));
+        }
         void start();
         void stop();
         void setBuf(GstBuffer* buf);
         void* getData();
+        GstPad* getPad(){return pad;}
         void bufferUnref();
         //Abstract factory to create either a GStreamerVideoSourceFile or a GStreamerVideoSourceLive.
         static GStreamerVideoSource* create(const char* id, CALLBACK cb, void* userData);
 
     protected:
         GStreamerVideoSource(CALLBACK, void*){}
-        GStreamerVideoSource(){}
+        GStreamerVideoSource(){pipeline = NULL;
+                               source = NULL;
+                               sink = NULL;
+                               buf = NULL;
+                               info = new GstMapInfo();}
         int createPipeline(const char* pipeline_str, void* myData);
         void* userData;
         CALLBACK cb;
         GstElement *pipeline;
         GstElement *source;
+        GstPad *pad;
         GstElement *sink;
         GstBuffer  *buf;
         GstMapInfo *info;
@@ -78,7 +89,6 @@ class GStreamerVideoSourceLive : public GStreamerVideoSource
         //pass camName==NULL to use the default camera
         GStreamerVideoSourceLive(const char*, CALLBACK, void*);
         GStreamerVideoSourceLive();
-        //copy constructor
         GStreamerVideoSourceLive(const GStreamerVideoSourceLive&);
         ~GStreamerVideoSourceLive();
 

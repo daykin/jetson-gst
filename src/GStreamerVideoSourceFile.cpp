@@ -21,10 +21,10 @@
 
 GStreamerVideoSourceFile::GStreamerVideoSourceFile(const char* fileName, CALLBACK cb, void* userData){
     std::string pipeline_str;
-    this->userData = userData;
-    this->cb = cb;
+    userData = userData;
+    cb = cb;
     pipeline_str = "filesrc location=";
     pipeline_str += fileName;
     pipeline_str += " name=source ! qtdemux ! h264parse ! avdec_h264 ! videoconvert ! appsink name=sink";
-    this->createPipeline(pipeline_str.c_str(), userData);
+    createPipeline(pipeline_str.c_str(), userData);
 }

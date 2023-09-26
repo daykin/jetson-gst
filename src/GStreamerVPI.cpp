@@ -18,99 +18,93 @@
 #include "GStreamerVPI.h"
 #include <iostream>
 
-GStreamerVPI::GStreamerVPI(const char *id)
-{
-    this->source = GStreamerVideoSource::create(id, GStreamerVPI::vpi_callback, this);
-    vpiContextCreate(VPI_BACKEND_CPU, &(this->ctx));
-    vpiContextSetCurrent(this->ctx);
-    vpiStreamCreate(VPI_BACKEND_CPU, &(this->stream));
-    this->backend = VPI_BACKEND_CPU;
-    this->imgDataIn = VPIImageData();
-    this->planeIn = VPIImagePlane();
-    this->fmtIn = VPI_IMAGE_FORMAT_INVALID;
-    this->imgIn = NULL;
-    this->imgOut = NULL;
-    this->fmtOut = VPI_IMAGE_FORMAT_INVALID;
-    this->sameDimensions = false;
-    this->sameFormat = false;
+GStreamerVPI::GStreamerVPI(const char *id) {
+    source = GStreamerVideoSource::create(id, vpi_callback, this);
+    vpiContextCreate(0, &ctx);
+    vpiContextSetCurrent(ctx);
+    vpiStreamCreate(0, &stream);
+    imgDataIn = VPIImageData();
+    planeIn = VPIImagePlane();
+    gst_pad_add_probe(source->getPad(), GST_PAD_PROBE_TYPE_EVENT_BOTH, dimensions_changed, this, nullptr);
+    fmtIn = VPI_IMAGE_FORMAT_INVALID;
+    imgIn = nullptr;
+    imgOut = nullptr;
+    fmtOut = VPI_IMAGE_FORMAT_INVALID;
 }
 
 GStreamerVPI::~GStreamerVPI()
 {
     // Destroy the VPI parameters
-    vpiStreamDestroy(this->stream);
-    vpiPayloadDestroy(this->payload);
+    vpiImageDestroy(imgIn);
+    vpiStreamDestroy(stream);
+    //vpiPayloadDestroy(payload);
     // Destroy the GStreamerVideoSource
-    delete this->source;
+    //delete source;
 }
 
-void GStreamerVPI::getVPIFormatIn(GstCaps *caps)
-{
-    VPIImageFormat fmtOld = this->fmtIn;
-    GstStructure *structure = gst_caps_get_structure(caps, 0);
-    const char *format = gst_structure_get_string(structure, "format");
-    if (strcmp(format, "RGB") == 0)
-    {
-        this->fmtIn = VPI_IMAGE_FORMAT_RGB8;
+GstPadProbeReturn GStreamerVPI::dimensions_changed(GstPad *pad, GstPadProbeInfo *info, gpointer _vpi){
+    GStreamerVPI *vpi = static_cast<GStreamerVPI*>(_vpi);
+    GstEvent *event = GST_PAD_PROBE_INFO_EVENT(info);
+    if(GST_EVENT_CAPS == GST_EVENT_TYPE(event)){
+        GstCaps *caps = gst_caps_new_any();
+        gst_event_parse_caps(event, &caps);
+
+        GstStructure *s = gst_caps_get_structure(caps, 0);
+        std::string fmt;
+        gboolean result;
+        result = gst_structure_get_int(s, "width", &(vpi->planeIn.width));
+        result |= gst_structure_get_int(s, "height", &(vpi->planeIn.height));
+        fmt = gst_structure_get_string(s, "format");
+        if(fmt == "RGB"){
+            vpi->fmtIn = VPI_IMAGE_FORMAT_RGB8;
+            vpi->planeIn.pitchBytes = vpi->planeIn.width * 3;
+        }
+        else if(fmt == "GRAY8"){
+            vpi->fmtIn = VPI_IMAGE_FORMAT_U8;
+            vpi->planeIn.pitchBytes = vpi->planeIn.width;
+        }
+        else{
+            std::cerr<<"Send me unsigned 8-bit data (GRAY8 or RGB), please"<<std::endl;
+            vpi->fmtIn = VPI_IMAGE_FORMAT_INVALID;
+        }
+        if(!result){
+            std::cerr << "No dimensions!" << std::endl;\
+        }
+        vpi->imgDataIn.numPlanes = 1;
+        vpi->updateImageData();
+        vpi->imgDataIn.format = vpi->fmtIn;
+        vpi->imgDataIn.planes[0] = vpi->planeIn;
+        std::cout << "GST_EVENT_CAPS dims: "<< vpi->planeIn.width << "x" << vpi->planeIn.height<<std::endl;
     }
-    else if (strcmp(format, "GRAY8") == 0)
-    {
-        this->fmtIn = VPI_IMAGE_FORMAT_U8;
-    }
-    else
-    {
-        std::cout << "Send me unsigned 8-bit data, please" << std::endl;
-        this->fmtIn = VPI_IMAGE_FORMAT_INVALID;
-    }
-    this->sameFormat = (gboolean)(this->fmtIn == fmtOld);
+    return GST_PAD_PROBE_OK;
 }
 
-void GStreamerVPI::getDimensionsFromCaps(GstCaps *caps)
-{
-    GstStructure *w = gst_caps_get_structure(caps, 1);
-    GstStructure *h = gst_caps_get_structure(caps, 2);
-    gint oldWidth = this->planeIn.width;
-    gint oldHeight = this->planeIn.height;
-    gst_structure_get_int(w, "width", &(this->planeIn.width));
-    gst_structure_get_int(h, "height", &(this->planeIn.height));
-    this->sameDimensions = (gboolean)(this->planeIn.width == oldWidth && this->planeIn.height == oldHeight);
-}
-
-gboolean GStreamerVPI::structureHasChanged()
-{
-    return !(this->sameDimensions && this->sameFormat);
-}
 
 void GStreamerVPI::updateImageData()
 {
-    if (this->imgIn != NULL)
-    {
-        vpiImageDestroy(this->imgIn);
-    }
-    // tell VPI about the data
-    // a 'plane' refers to a 2D array of data
-    // color images are still 1 plane, we just stride by 3 bytes instead of 1
-    if (this->fmtIn == VPI_IMAGE_FORMAT_RGB8)
-    {
-        this->planeIn.pitchBytes = this->planeIn.width * 3;
-    }
-    else
-    {
-        this->planeIn.pitchBytes = this->planeIn.width;
-    }
-
-    this->imgDataIn.numPlanes = 1;
-    this->planeIn.data = this->source->getData();
-    this->imgDataIn.format = this->fmtIn;
-    this->imgDataIn.planes[0] = this->planeIn;
+    planeIn.data = source->getData();
+    imgDataIn.planes[0] = planeIn;
 }
 
 void GStreamerVPI::unrefSourceBuffer()
 {
-    this->source->bufferUnref();
+    source->bufferUnref();
 }
 
-// pass a pointer to ourselves into the callback, so it knows our state
+void GStreamerVPI::createOrUpdateImgIn()
+{
+    const VPIImageData *pData = &(imgDataIn);
+    if (imgIn == NULL)
+    {
+        vpiImageCreateHostMemWrapper(pData, 0, &(imgIn));
+    }
+    else
+    {
+        vpiImageSetWrappedHostMem(imgIn, pData);
+    }
+}
+
+// static, pass a pointer to ourselves into the callback
 GstFlowReturn GStreamerVPI::vpi_callback(GstElement *sink, void *_vpi)
 {
     GStreamerVPI *vpi = (GStreamerVPI *)_vpi;
@@ -119,41 +113,22 @@ GstFlowReturn GStreamerVPI::vpi_callback(GstElement *sink, void *_vpi)
         std::cout << "Sink is null!" << std::endl;
         return GST_FLOW_ERROR;
     }
-    GstPad *pad;
-    GstCaps *caps;
     GstSample *sample;
-    const VPIImageData *pData = &(vpi->imgDataIn);
     g_signal_emit_by_name(sink, "pull-sample", &sample, NULL);
     if (sample)
     {
-        std::cout << "Got a frame!" << std::endl;
-        vpi->source->setBuf(gst_sample_get_buffer(sample));
-
-        // get the dimensions and type of the frame
-        pad = gst_element_get_static_pad(sink, "sink");
-        caps = gst_pad_get_current_caps(pad);
-        vpi->getDimensionsFromCaps(caps);
-        vpi->getVPIFormatIn(caps);
-
-        if (vpi->fmtIn != VPI_IMAGE_FORMAT_U8 && vpi->fmtIn != VPI_IMAGE_FORMAT_RGB8)
-        {
-            return GST_FLOW_ERROR;
+        std::cout<<"Got a frame"<<std::endl;
+        vpi->source->setBuf(gst_buffer_ref(gst_sample_get_buffer(sample)));
+        vpi->updateImageData();
+        vpi->createOrUpdateImgIn();
+        // do something with imgIn here, e.g. notify your own stuff that it's here
+        
+        if(vpi->imgIn == NULL){
+            std::cout<<"Image is null!"<<std::endl;
         }
-        if (vpi->structureHasChanged() || vpi->imgIn == NULL)
-        {
-            // destroy the old image if it exists
-            vpi->updateImageData();
-            vpiImageCreateHostMemWrapper(pData, 0, &(vpi->imgIn));
-        }
-        else
-        { // structure hasn't changed and we already have an Image object
-            vpiImageSetWrappedHostMem(vpi->imgIn, pData);
-        }
-        // do something with the image
-        if(vpi->imgIn != NULL){
-            std::cout<<"Image is not null!"<<std::endl;
-        }
+        //be sure to block (e.g. with vpiStreamSync) until you've copied the data out of imgIn!
         vpi->unrefSourceBuffer();
+        INVALIDATE_IMGIN
         gst_sample_unref(sample);
     }
     return GST_FLOW_OK;

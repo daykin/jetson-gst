@@ -3,13 +3,15 @@ project(jetsonGst)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+#build with debug symbols
+set(CMAKE_BUILD_TYPE Debug)
+
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules)
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
 include("cmake/CompilerWarnings.cmake")
 include("cmake/git-helper.cmake")
-
-set(default_build_type "Release") 
+ 
 #include("cmake/StandardProjectSettings.cmake")
 set(CMAKE_CXX_VISIBILITY_PRESET default)
 
