@@ -46,8 +46,8 @@ class GStreamerVPI{
         void* getInData();
         VPIImagePlane planeIn;
         void createOrUpdateImgIn();
-        void start(){source->start();};
-        void stop(){source->stop();}
+        void start(){this->source->start();};
+        void stop(){this->source->stop();}
     protected:
         void getVPIFormatIn(GstCaps* caps);
         void updateImageData();
@@ -63,8 +63,6 @@ class GStreamerVPI{
         VPIImageFormat fmtOut;
         VPIPayload payload;
     private:
-        gboolean sameDimensions;
-        gboolean sameFormat;
         static GstFlowReturn vpi_callback(GstElement* sink, void* _vpi);
         static GstPadProbeReturn dimensions_changed(GstPad *pad, GstPadProbeInfo *info, gpointer user_data);
 };

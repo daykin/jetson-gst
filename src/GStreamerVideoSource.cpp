@@ -60,11 +60,12 @@ void GStreamerVideoSource::stop(){
     gst_element_set_state(pipeline, GST_STATE_NULL);
 }
 
-void GStreamerVideoSource::setBuf(GstBuffer* buf){
-    buf = buf;
-    gst_buffer_map(buf, info, GST_MAP_READ);
+void GStreamerVideoSource::setBuf(GstBuffer* gbuf){
+    this->buf = gbuf;
+    gst_buffer_map(this->buf, info, GST_MAP_READ);
 }
 
+//return a pointer to the array holding the image data
 void *GStreamerVideoSource::getData()
 {
     if(info->data != NULL){

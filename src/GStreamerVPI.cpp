@@ -18,17 +18,19 @@
 #include "GStreamerVPI.h"
 #include <iostream>
 
-GStreamerVPI::GStreamerVPI(const char *id) {
-    source = GStreamerVideoSource::create(id, vpi_callback, this);
-    vpiContextCreate(0, &ctx);
+GStreamerVPI::GStreamerVPI(const char *id)
+{
+    source = GStreamerVideoSource::create(id, GStreamerVPI::vpi_callback, this);
+    vpiContextCreate(0, &(ctx));
     vpiContextSetCurrent(ctx);
-    vpiStreamCreate(0, &stream);
+    vpiStreamCreate(0, &(stream));
     imgDataIn = VPIImageData();
     planeIn = VPIImagePlane();
+    //tell the source to update the VPI dimension/format parameters when they change
     gst_pad_add_probe(source->getPad(), GST_PAD_PROBE_TYPE_EVENT_BOTH, dimensions_changed, this, nullptr);
     fmtIn = VPI_IMAGE_FORMAT_INVALID;
-    imgIn = nullptr;
-    imgOut = nullptr;
+    imgIn = NULL;
+    imgOut = NULL;
     fmtOut = VPI_IMAGE_FORMAT_INVALID;
 }
 
@@ -43,7 +45,7 @@ GStreamerVPI::~GStreamerVPI()
 }
 
 GstPadProbeReturn GStreamerVPI::dimensions_changed(GstPad *pad, GstPadProbeInfo *info, gpointer _vpi){
-    GStreamerVPI *vpi = static_cast<GStreamerVPI*>(_vpi);
+    GStreamerVPI* vpi = (GStreamerVPI*) _vpi;
     GstEvent *event = GST_PAD_PROBE_INFO_EVENT(info);
     if(GST_EVENT_CAPS == GST_EVENT_TYPE(event)){
         GstCaps *caps = gst_caps_new_any();
@@ -104,7 +106,7 @@ void GStreamerVPI::createOrUpdateImgIn()
     }
 }
 
-// static, pass a pointer to ourselves into the callback
+// pass a pointer to ourselves into the callback, so it knows our state
 GstFlowReturn GStreamerVPI::vpi_callback(GstElement *sink, void *_vpi)
 {
     GStreamerVPI *vpi = (GStreamerVPI *)_vpi;
