@@ -42,6 +42,7 @@
 class GStreamerVPI{
     public:
         GStreamerVPI(const char* id, LogLevel level = WARN);
+        GStreamerVPI(const char* id, GStreamerVideoSource::CALLBACK cb, LogLevel level = WARN);
         ~GStreamerVPI();
         gboolean structureHasChanged();
         void* getInData();
@@ -64,6 +65,7 @@ class GStreamerVPI{
         VPIImageFormat fmtOut;
         VPIPayload payload;
     private:
+        void init(const char* id, LogLevel lvl);
         static GstFlowReturn vpi_callback(GstElement* sink, void* _vpi);
         static GstPadProbeReturn dimensions_changed(GstPad *pad, GstPadProbeInfo *info, gpointer user_data);
 };

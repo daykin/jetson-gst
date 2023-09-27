@@ -18,10 +18,7 @@
 #include "GStreamerVPI.h"
 #include <iostream>
 
-GStreamerVPI::GStreamerVPI(const char *id, LogLevel level)
-{
-    source = GStreamerVideoSource::create(id, GStreamerVPI::vpi_callback, this);
-    source->setLogLevel(level);
+void GStreamerVPI::init(const char* id, LogLevel level){
     vpiContextCreate(0, &(ctx));
     vpiContextSetCurrent(ctx);
     vpiStreamCreate(0, &(stream));
@@ -34,7 +31,21 @@ GStreamerVPI::GStreamerVPI(const char *id, LogLevel level)
     imgOut = NULL;
     logger.setLogLevel(level);
     fmtOut = VPI_IMAGE_FORMAT_INVALID;
-    INFO("Created GStreamerVPI Object.");
+}
+
+//create a GStreamerVPI with our example callback
+GStreamerVPI::GStreamerVPI(const char *id, LogLevel level)
+{
+    source = GStreamerVideoSource::create(id, GStreamerVPI::vpi_callback, this);
+    init(id,level);
+    INFO("Created GStreamerVPI Object with id %s", id);
+}
+
+// Create a GStreamerVPI object with a custom callback
+GStreamerVPI::GStreamerVPI(const char* id, GStreamerVideoSource::CALLBACK cb, LogLevel level){
+    source = GStreamerVideoSource::create(id, cb, this);
+    init(id, level);
+    INFO("Created GStreamerVPI Object with id %s", id);
 }
 
 GStreamerVPI::~GStreamerVPI()
@@ -69,18 +80,23 @@ GstPadProbeReturn GStreamerVPI::dimensions_changed(GstPad *pad, GstPadProbeInfo 
             vpi->fmtIn = VPI_IMAGE_FORMAT_U8;
             vpi->planeIn.pitchBytes = vpi->planeIn.width;
         }
+        else if(fmt == "I420"){
+            //discard the UV plane, just keep the Y as a grayscale U8
+            vpi->fmtIn = VPI_IMAGE_FORMAT_Y8_ER;
+            vpi->planeIn.pitchBytes = vpi->planeIn.width;
+        }
         else{
-            vpi->ERROR("Send me unsigned 8-bit data (GRAY8 or RGB), please");
+            vpi->ERROR("Send me unsigned 8-bit data (GRAY8 or RGB), please. You're sending %s.", fmt.c_str());
             vpi->fmtIn = VPI_IMAGE_FORMAT_INVALID;
         }
         if(!result){
-            std::cerr << "No dimensions!" << std::endl;\
+            vpi->WARN("No dimensions!");
         }
         vpi->imgDataIn.numPlanes = 1;
         vpi->updateImageData();
         vpi->imgDataIn.format = vpi->fmtIn;
         vpi->imgDataIn.planes[0] = vpi->planeIn;
-        vpi->INFO(std::string("GST_EVENT_CAPS dims: ")+(std::to_string(vpi->planeIn.width))+std::string("x")+(std::to_string(vpi->planeIn.height)));
+        vpi->INFO("GST_EVENT_CAPS dims: %dx%d", vpi->planeIn.width, vpi->planeIn.height);
     }
     return GST_PAD_PROBE_OK;
 }
@@ -115,6 +131,7 @@ void GStreamerVPI::createOrUpdateImgIn()
 }
 
 // pass a pointer to ourselves into the callback, so it knows our state
+// This one is an example, you don't have to use it.
 GstFlowReturn GStreamerVPI::vpi_callback(GstElement *sink, void *_vpi)
 {
     GStreamerVPI *vpi = (GStreamerVPI *)_vpi;

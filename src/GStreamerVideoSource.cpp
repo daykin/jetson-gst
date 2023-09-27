@@ -34,7 +34,7 @@ GStreamerVideoSource* GStreamerVideoSource::create(const char* id, GStreamerVide
     std::string strId(id);
     if (strId.size() >= 4 && strId.substr(strId.size() - 4) == ".mp4"){
         return new GStreamerVideoSourceFile(id, cb, userData);
-    //else create a GStreamerVideoSourceLive
+    //assume it's a TIS camera serial. create a GStreamerVideoSourceLive
     }else{
         return new GStreamerVideoSourceLive(id, cb, userData);
     }
@@ -45,12 +45,11 @@ int GStreamerVideoSource::createPipeline(const char* pipeline_str, void* myData)
     GError* err = NULL;
     //create pipeline from pipeline_str
     INFO("Creating pipeline");
-    DEBUG(pipeline_str);
+    DEBUG("Pipeline: %s",pipeline_str);
     pipeline = gst_parse_launch(pipeline_str, &err);
     if (pipeline == NULL)
     {
-        ERROR("Could not create pipeline. Cause:\n");
-        ERROR(err->message);
+        ERROR("Could not create pipeline. Cause: %s", err->message);
         return 1;
     }
     //get source and sink elements from pipeline
@@ -67,10 +66,12 @@ int GStreamerVideoSource::createPipeline(const char* pipeline_str, void* myData)
 }
 
 void GStreamerVideoSource::start(){
+    INFO("Starting pipeline");
     gst_element_set_state(pipeline, GST_STATE_PLAYING);
 }
 
 void GStreamerVideoSource::stop(){
+    INFO("Stopping pipeline");
     gst_element_set_state(pipeline, GST_STATE_NULL);
 }
 

@@ -17,14 +17,15 @@
 
 #include <string>
 #include <iostream>
+#include <cstdarg>
 
 #ifndef LOGGER_H
 #define LOGGER_H
 
-#define INFO(msg) logger.log(msg, LogLevel::INFO)
-#define WARN(msg) logger.log(msg, LogLevel::WARN)
-#define ERROR(msg) logger.log(msg, LogLevel::ERROR)
-#define DEBUG(msg) logger.log(msg, LogLevel::DEBUG)
+#define INFO(msg, ...) logger.log( LogLevel::INFO, msg, ##__VA_ARGS__)
+#define WARN(msg, ...) logger.log( LogLevel::WARN, msg, ##__VA_ARGS__)
+#define ERROR(msg, ...) logger.log( LogLevel::ERROR, msg, ##__VA_ARGS__)
+#define DEBUG(msg, ...) logger.log( LogLevel::DEBUG, msg, ##__VA_ARGS__)
 
 typedef enum {
     DEBUG = 0,
@@ -32,6 +33,13 @@ typedef enum {
     WARN = 2,
     ERROR = 3
 } LogLevel;
+
+static const char* logLevelStrings[] = {
+    "DEBUG",
+    "INFO",
+    "WARN",
+    "ERROR"
+};
 
 class Logger{
     public:
@@ -43,13 +51,18 @@ class Logger{
         void setLogLevel(LogLevel level){
             this->level = level;
         }
-        void log(const char* msg, LogLevel lvl){
+        void log(LogLevel lvl, const char* msg, ...){
+            va_list args;
+            va_start(args,msg);
             if(this->level <= lvl){
-                std::cerr<<name<<": "<<msg<<std::endl;
+                fprintf(stderr,"[%s] %s:", this->name, logLevelStrings[lvl]);
+                vfprintf(stderr, msg, args);
+                fprintf(stderr, "\n");
             }
+            va_end(args);
         }
-        void log(std::string msg, LogLevel lvl){
-            log(msg.c_str(), lvl);
+        void log(LogLevel lvl, std::string msg){
+            log(lvl, msg.c_str());
         }
     private:
         const char* name;
