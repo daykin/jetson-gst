@@ -22,3 +22,7 @@ OpenCV 4 - `sudo apt install libopencv-dev`
 `cmake ..`
 
 `make`
+
+### Try a dumb example
+
+go to `build/bin` and run `./demo -v ../../media/motor-sample/2rpm/2rpm.mp4`.
