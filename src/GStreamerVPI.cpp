@@ -53,12 +53,12 @@ GStreamerVPI::~GStreamerVPI()
     INFO("Destroying GStreamerVPI Object.");
     // Destroy the VPI parameters
     vpiImageDestroy(imgIn);
+    vpiImageDestroy(imgOut);
     vpiStreamDestroy(stream);
-    //vpiPayloadDestroy(payload);
-    // Destroy the GStreamerVideoSource
-    //delete source;
+    vpiContextDestroy(ctx);
 }
 
+// This function is called by the GStreamerVideoSource pipeline when the dimensions/format change
 GstPadProbeReturn GStreamerVPI::dimensions_changed(GstPad *pad, GstPadProbeInfo *info, gpointer _vpi){
     GStreamerVPI* vpi = (GStreamerVPI*) _vpi;
     GstEvent *event = GST_PAD_PROBE_INFO_EVENT(info);
@@ -144,6 +144,10 @@ GstFlowReturn GStreamerVPI::vpi_callback(GstElement *sink, void *_vpi)
     g_signal_emit_by_name(sink, "pull-sample", &sample, NULL);
     if (sample)
     {
+        vpi->frameCount++;
+        if(vpi->frameCount % 100 == 0){
+            vpi->INFO("Got %ld frames", vpi->frameCount);
+        }
         vpi->DEBUG("Got a frame");
         vpi->source->setBuf(gst_buffer_ref(gst_sample_get_buffer(sample)));
         vpi->updateImageData();

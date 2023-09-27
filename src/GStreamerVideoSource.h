@@ -68,8 +68,7 @@ class GStreamerVideoSource
         GstElement *sink;
         GstBuffer  *buf;
         GstMapInfo *info;
-    private:
-        Logger logger = Logger("GStreamerVideoSource", WARN);
+        Logger logger = Logger("GStreamerVideoSource", WARN);     
 };
 
 class GStreamerVideoSourceFile : public GStreamerVideoSource
@@ -90,7 +89,10 @@ class GStreamerVideoSourceLive : public GStreamerVideoSource
         GStreamerVideoSourceLive(const char*, CALLBACK, void* userData);
         GStreamerVideoSourceLive(const GStreamerVideoSourceLive&);
         ~GStreamerVideoSourceLive();
-
+        void print_enum_property(const char* propName);
+        void print_float_property(const char* propName);
+        void set_enum_property(const char* propName, const char* value);
+        void set_float_property(const char* propName, gdouble value);
     private:
         const char* camName;
 };

@@ -38,6 +38,7 @@
 #include "GStreamerVideoSource.h"
 
 #define INVALIDATE_IMGIN {if(vpi->imgIn != NULL){ vpiImageInvalidate(vpi->imgIn); }}
+#define INVALIDATE_IMGOUT {if(vpi->imgOut != NULL){ vpiImageInvalidate(vpi->imgOut); }}
 
 class GStreamerVPI{
     public:
@@ -45,8 +46,7 @@ class GStreamerVPI{
         GStreamerVPI(const char* id, GStreamerVideoSource::CALLBACK cb, LogLevel level = WARN);
         ~GStreamerVPI();
         gboolean structureHasChanged();
-        void* getInData();
-        VPIImagePlane planeIn;
+        void* getInData();  
         void createOrUpdateImgIn();
         void start(){this->source->start();};
         void stop(){this->source->stop();}
@@ -60,11 +60,13 @@ class GStreamerVPI{
         VPIImage imgIn;
         VPIImageData imgDataIn;
         VPIImageFormat fmtIn;
+        VPIImagePlane planeIn;
         VPIImage imgOut;
         VPIBackend backend;
         VPIImageFormat fmtOut;
         VPIPayload payload;
     private:
+        long frameCount = 0;
         void init(const char* id, LogLevel lvl);
         static GstFlowReturn vpi_callback(GstElement* sink, void* _vpi);
         static GstPadProbeReturn dimensions_changed(GstPad *pad, GstPadProbeInfo *info, gpointer user_data);
